@@ -39,4 +39,32 @@
 #define RX          D0
 #define TX          D1
 
+// --- Project-specific pin assignments ---
+
+// POT1 → PWM LED intensity (ADC channel numbers, not GPIO descriptors)
+#define POT1_ADC_CH   0  /* A0 */
+#define POT2_ADC_CH   1  /* A1 */
+
+// PWM LED (D9 / PB1 / OC1A)
+#define PWM_LED       D9
+
+// Sweep LEDs: D2–D6 (PD2–PD6), index 0 = leftmost
+#define SWEEP_LED_0   D2
+#define SWEEP_LED_1   D3
+#define SWEEP_LED_2   D4
+#define SWEEP_LED_3   D5
+#define SWEEP_LED_4   D6
+
+// Binary counter LEDs: D10–D13 (bits 0–3), A2–A3 (bits 4–5), LSB first
+#define BIN_LED_0     D10
+#define BIN_LED_1     D11
+#define BIN_LED_2     D12
+#define BIN_LED_3     D13
+#define BIN_LED_4     A2
+#define BIN_LED_5     A3
+
+// Buttons (D7, D8 — pulled up internally, active LOW)
+#define BTN_INCREMENT D7
+#define BTN_RESET     D8
+
 #endif // NANO_H
