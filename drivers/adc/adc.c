@@ -19,7 +19,8 @@ void ADC_Init(void) {
     // Enable ADC
     ADCSRA |= (1 << ADEN);
 
-    // Dummy conversion after enabling ADC
+    // Dummy conversion after enabling ADC (first result is always inaccurate)
+    ADCSRA |= (1 << ADSC);
     while (ADCSRA & (1 << ADSC));
     (void)ADCL;
     (void)ADCH;
@@ -39,13 +40,18 @@ uint16_t ADC_Read(uint8_t channel) {
     // 0xF0 mask preserves REFS0/1 (Voltage Ref) and ADLAR (Left Adjust)
     ADMUX = (ADMUX & 0xF0) | (channel & 0x07);
 
-    // Start Conversion
+    // Dummy conversion: after switching channels the internal sample-and-hold
+    // capacitor still holds charge from the previous channel. One throwaway
+    // conversion lets it settle on the new channel before we read the result.
     ADCSRA |= (1 << ADSC);
+    while (ADCSRA & (1 << ADSC));
+    (void)ADCL;
+    (void)ADCH;
 
-    // Wait for conversion to complete
+    // Real conversion
+    ADCSRA |= (1 << ADSC);
     while (ADCSRA & (1 << ADSC));
 
-    // Return the ADC result
     uint8_t low  = ADCL;
     uint8_t high = ADCH;
 

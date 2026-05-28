@@ -1,6 +1,7 @@
 #include "pwm.h"
 #include "drivers/timer/timer1.h"
 #include "drivers/timer/timer2.h"
+#include "drivers/gpio/gpio.h"
 #include "bsp/uno.h"
 
 // Helper to determine Timer and Channel from Port/Pin
@@ -21,6 +22,9 @@
  * @param frequency_hz Desired PWM frequency in Hz.
  */
 void PWM_Init(uint8_t port, uint8_t pin, uint32_t frequency_hz) {
+    /* OC pin must be set as output or the timer cannot drive it */
+    GPIO_Init((gpio_port_t)port, pin, GPIO_OUTPUT);
+
     if (port == GPIO_PORTB) {
         if (pin == 1 || pin == 2) {
             // Timer1 (16-bit)
