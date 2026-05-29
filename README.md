@@ -1,132 +1,50 @@
-# Embedded Systems Course and Labs for students from Automation and Applied Informatics from Faculty of Automation, Computers and Electronics, University of Craiova
+# Sistem Integrat de Control cu ATmega328P
 
-This repository is dedicated to the Embedded Systems course and labs for students from Automation and Applied Informatics from Faculty of Automation, Computers and Electronics, University of Craiova. 
+Proiect realizat pe microcontrollerul ATmega328P (16 MHz), scris de la zero in C pur, fara librarii de Arduino. Aplicatia ruleaza pe o structura de super-loop si gestioneaza in timp real trei functionalitati independente.
 
-If you are a student: please fork this repository and use it for your labs, homework and course. 
+---
 
-Found a bug or you just want to contribute to this project ? Please raise an issue and/or send a pull request.
+## Ce face proiectul
 
-[![Run Tests](https://github.com/mamuleanu/embedded-systems-course-atmega328p/actions/workflows/tests.yml/badge.svg)](https://github.com/mamuleanu/embedded-systems-course-atmega328p/actions/workflows/tests.yml)
+1. **Reglare intensitate LED (PWM):** Sistemul citeste valoarea analogica de la potentiometrul POT1 (A0) prin ADC si o scaleaza pe 8 biti (0-255). Valoarea este trimisa direct in registrul de match de la Timer1 pentru a modifica luminozitatea unui LED pe pinul D9 (Fast PWM la 1 kHz).
+2. **Semnalizare dinamica auto (Sweep):** Citeste potentiometrul POT2 (A1) pentru a calcula deviatia fata de centru (512). Daca potentiometrul e miscat stanga/dreapta, un grup de 5 LED-uri (D2-D6) se aprinde secvential in directia respectiva. Viteza efectului este dinamica (intre 30 si 200 ms) in functie de cat de mult invarti potentiometrul, existand si o zona moarta la mijloc pentru oprire.
+3. **Numarator binar pe 6 biti:** Foloseste doua butoane (D7 pentru incrementare si D8 pentru reset) conectate cu pull-up intern (active-LOW). Pentru a scapa de zgomotul de contact, am implementat un debouncing software de 50 ms folosind functia non-blocking Millis(). Rezultatul (0-63) este afisat in binar pe 6 LED-uri (D10-D13, A2, A3).
 
+---
 
-## Features
+## Configurare Pini
 
-- **No Arduino Libraries**: Direct register manipulation for maximum control and efficiency.
-- **Drivers:**: Modular, documented, and reusable.
-    - **GPIO**: Initialization, Write, Read, Toggle.
-    - **Interrupts**: External Interrupts (INT0, INT1) with callback support.
-    - **Timer**: 1ms System Tick (`Millis()`) using Timer0 CTC mode.
-    - **EEPROM**: Read, Write, Update (lifespan-aware).
-    - **ADC**: Blocking 10-bit Analog-to-Digital conversion.
-    - **PWM**: High-level wrapper for Timer1 (16-bit) and Timer2 (8-bit) PWM generation.
-- **Board Support Package (BSP)**: Pin mappings for **Arduino Nano** and **Uno**.
-- **Robust Build System**: `Makefile` for compilation, flashing, and testing.
-- **Host-Based Unit Testing**: Run unit tests on your computer without hardware using register mocking.
-- **Code Coverage**: Generate HTML reports (`lcov`) to verify test coverage.
+* **A0 (ADC0):** Potentiometru 1 (Intensitate LED)
+* **A1 (ADC1):** Potentiometru 2 (Directie/Viteza Semnalizare)
+* **D9 (OC1A):** LED PWM (Iesire Timer1)
+* **D2–D6:** LED-uri Semnalizare Dinamica (PORTD)
+* **D10–D13 & A2–A3:** LED-uri Numarator Binar (Afisare 0-63)
+* **D7:** Buton Incrementare / **D8:** Buton Reset
 
-## Roadmap
+---
 
-- [x] GPIO driver
-- [x] ADC driver
-- [x] EEPROM driver
-- [x] Interrupt driver
-- [x] Timer driver
-- [x] PWM driver
-- [ ] I2C driver
-- [ ] SPI driver
-- [ ] UART driver
-- [ ] Unit tests
+## Structura Proiectului
+├── bsp/            # Configurari hardware si mapare pini (nano.h)
+├── drivers/        # Drivere periferice (adc, pwm, button, sweep, binary_counter, timer0, gpio)
+├── src/            # Codul principal al aplicatiei (main.c)
+├── test/           # Teste unitare pentru rulare pe PC cu regiștri mock-uiti
+└── Makefile        # Script de compilare si incarcare pe placa
 
-## Project Structure
+---
 
-```
-├── bsp/            # Board definitions (uno.h, nano.h)
-├── drivers/        # Hardware Abstraction Layer
-│   ├── adc/
-│   ├── eeprom/
-│   ├── gpio/
-│   ├── interrupt/
-│   └── timer/
-├── src/            # Application source code (main.c)
-├── test/           # Unit tests & Mocks
-│   ├── mocks/      # Mock AVR registers for host testing
-│   ├── framework/  # Minimal test runner
-│   └── test_*.c    # Unit test files
-├── utils/          # Helper macros (BIT manipulations)
-└── Makefile        # Build configuration
-```
+## Compilare si Rulare
 
-## Build & Flash
+```bash
+# Compilare proiect pentru Arduino Nano
+make
 
-### Prerequisites
-- `avr-gcc` toolchain
-- `avrdude`
-- `make`
+# Incarcare cod pe placa prin USB
+make flash
 
-### Commands
-| Command | Description |
-|---------|-------------|
-| `make all BOARD=nano` | Compile the project for Arduino Nano. |
-| `make flash` | Flash the firmware to the connected board. |
-| `make clean` | Remove build artifacts. |
+# Stergere fisiere temporare de build
+make clean
 
-## Testing & Coverage
+# Rulare teste unitare pe PC
+make test
 
-This project supports running unit tests on your host machine (Mac/Linux) by mocking the AVR hardware registers.
-
-### Prerequisites (for coverage)
-- `gcc`
-- `lcov` (`brew install lcov`)
-
-### Commands
-| Command | Description |
-|---------|-------------|
-| `make test` | Compile and run all unit tests (GPIO, PWM) on the host. |
-| `make coverage` | Run tests and generate usage metrics. |
-| `make coverage-html` | Generate a visual HTML report of code coverage. |
-
-![Code Coverage Example](/img/code_coverage_example.png)
-
-## Usage Example
-
-```c
-#include "drivers/gpio/gpio.h"
-#include "drivers/timer/timer0.h"
-#include "bsp/nano.h"
-
-int main(void) {
-    
-    Timer0_Init();
-    GPIO_Init(LED_BUILTIN, GPIO_OUTPUT);
-
-    uint32_t last_time = 0;
-
-    while (1) {
-            
-        if (Millis() - last_time >= 1000) {
-            last_time = Millis();
-            GPIO_Toggle(LED_BUILTIN);
-        }
-    }
-}
-
-// PWM Usage Example
-#include "drivers/pwm/pwm.h"
-#include "bsp/uno.h"
-
-int pwm_example(void) {
-    // 50Hz for Servo on D9
-    PWM_Init(UNO_D9, 50);
-    // 1.5ms pulse (approx neutral)
-    // Duty cycle calculation: (1.5ms / 20ms) * ICR1_TOP
-    // Wrapper takes 0-255: (1.5/20)*255 = ~19
-    PWM_SetDutyCycle(UNO_D9, 19);
-
-    // 1kHz LED Dimming on D11
-    PWM_Init(UNO_D11, 1000);
-    PWM_SetDutyCycle(UNO_D11, 128); // 50%
-    
-    return 0;
-}
-```
-
+Contribuitori: Dudu Cosmnin-Mihaita --- Iordache Cosmin Stefan.
