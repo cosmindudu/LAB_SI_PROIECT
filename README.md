@@ -24,6 +24,8 @@ Proiect realizat pe microcontrollerul ATmega328P (16 MHz), scris de la zero in C
 ---
 
 ## Structura Proiectului
+
+
 ├── bsp/            # Configurari hardware si mapare pini (nano.h)
 ├── drivers/        # Drivere periferice (adc, pwm, button, sweep, binary_counter, timer0, gpio)
 ├── src/            # Codul principal al aplicatiei (main.c)
