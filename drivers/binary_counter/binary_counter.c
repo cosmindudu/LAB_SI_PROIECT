@@ -3,7 +3,7 @@
 
 /*
  * 6 LEDs, LSB first:
- *   bit0 = D10 (PORTB pin 2)
+ *   bit0 = A4 (PORTC pin 4)
  *   bit1 = D11 (PORTB pin 3)
  *   bit2 = D12 (PORTB pin 4)
  *   bit3 = D13 (PORTB pin 5)
@@ -14,7 +14,7 @@
 static uint8_t counter_value = 0;
 
 static void display(void) {
-    GPIO_Write(GPIO_PORTB, 2, (counter_value >> 0) & 1);
+    GPIO_Write(GPIO_PORTC, 4, (counter_value >> 0) & 1);
     GPIO_Write(GPIO_PORTB, 3, (counter_value >> 1) & 1);
     GPIO_Write(GPIO_PORTB, 4, (counter_value >> 2) & 1);
     GPIO_Write(GPIO_PORTB, 5, (counter_value >> 3) & 1);
@@ -23,7 +23,7 @@ static void display(void) {
 }
 
 void BinaryCounter_Init(void) {
-    GPIO_Init(GPIO_PORTB, 2, GPIO_OUTPUT);
+    GPIO_Init(GPIO_PORTC, 4, GPIO_OUTPUT);
     GPIO_Init(GPIO_PORTB, 3, GPIO_OUTPUT);
     GPIO_Init(GPIO_PORTB, 4, GPIO_OUTPUT);
     GPIO_Init(GPIO_PORTB, 5, GPIO_OUTPUT);
